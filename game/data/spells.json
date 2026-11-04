@@ -1,0 +1,23 @@
+{
+ "_doc": "Spells. type: projectile (straight), lob (arc + area damage), rain (projectiles falling on an area ahead). fx/hit_fx/explode_fx = keys in fx.json. Speeds in px/s, cooldown in s.",
+ "fireball": {
+  "type": "projectile", "fx": "fireball", "hit_fx": "hit_fire", "sound": "",
+  "speed": 250, "damage": 3, "cooldown": 0.38, "count": 1, "spread": 0, "radius": 7, "range": 420
+ },
+ "arrow_volley": {
+  "type": "projectile", "fx": "arrow", "hit_fx": "hit_spark",
+  "speed": 400, "damage": 1, "cooldown": 0.3, "count": 3, "spread": 4, "radius": 4, "range": 420
+ },
+ "meteor": {
+  "type": "lob", "fx": "fireball", "explode_fx": "explosion",
+  "speed": 190, "lift": 230, "damage": 8, "area": 52, "cooldown": 0.6, "radius": 7
+ },
+ "arrow_rain": {
+  "type": "rain", "fx": "arrow", "hit_fx": "hit_spark",
+  "count": 9, "damage": 3, "ahead": 120, "width": 110, "delay": 0.35, "speed": 420, "cooldown": 0.8, "radius": 5
+ },
+ "acid": {
+  "type": "lob", "fx": "acid_glob", "explode_fx": "acid_splash",
+  "speed": 150, "lift": 170, "damage": 1, "area": 14, "cooldown": 0, "radius": 5
+ }
+}

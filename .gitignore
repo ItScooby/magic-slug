@@ -1,0 +1,7 @@
+# Godot
+game/.godot/
+build/
+*.tmp
+# art tool scratch
+tools/art/out/
+.DS_Store

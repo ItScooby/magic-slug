@@ -1,0 +1,13 @@
+{
+ "_doc": "Playable characters. sheet = game/assets/sprites/characters/<sheet>.png (made by tools/art/characters.mjs). attack/special = keys in spells.json.",
+ "mage": {
+  "name": "Mago", "sheet": "mage", "speed": 95, "jump": 315, "hp": 3,
+  "attack": "fireball", "special": "meteor", "special_ammo": 10,
+  "desc": "Bola de fogo forte e lenta. Especial: Meteoro."
+ },
+ "archer": {
+  "name": "Arqueiro", "sheet": "archer", "speed": 108, "jump": 330, "hp": 3,
+  "attack": "arrow_volley", "special": "arrow_rain", "special_ammo": 10,
+  "desc": "Salva de 3 flechas rapidas. Especial: Chuva de flechas."
+ }
+}

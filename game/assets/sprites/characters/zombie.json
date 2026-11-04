@@ -1,0 +1,48 @@
+{
+ "cell": [
+  64,
+  64
+ ],
+ "pivot": [
+  32,
+  58
+ ],
+ "animations": {
+  "walk": {
+   "row": 0,
+   "frames": 6,
+   "fps": 6,
+   "loop": true
+  },
+  "attack": {
+   "row": 1,
+   "frames": 3,
+   "fps": 10,
+   "loop": false
+  },
+  "spit": {
+   "row": 2,
+   "frames": 3,
+   "fps": 8,
+   "loop": false
+  },
+  "hurt": {
+   "row": 3,
+   "frames": 1,
+   "fps": 8,
+   "loop": false
+  },
+  "death": {
+   "row": 4,
+   "frames": 3,
+   "fps": 8,
+   "loop": false
+  }
+ },
+ "muzzles": {
+  "spit": [
+   8,
+   -16
+  ]
+ }
+}
