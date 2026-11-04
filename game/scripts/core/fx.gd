@@ -3,6 +3,7 @@ extends Node
 ##   Fx.play("explosion", pos)                     one-shot, frees itself
 ##   Fx.play("torch", pos, {"loop": true})         stays (props)
 ##   Fx.shake(4.0)                                 camera shake
+##   Fx.ring(pos, Color.RED, 40.0)                  expanding pixel ring (power pickup, death)
 
 var world: Node2D           ## set by the level
 var camera: Camera2D        ## set by the level
@@ -40,3 +41,28 @@ func _process(delta: float) -> void:
 		_shake = move_toward(_shake, 0.0, delta * 30.0)
 	else:
 		camera.offset = Vector2.ZERO
+
+## An expanding ring that fades out.
+func ring(pos: Vector2, color: Color, radius := 36.0, seconds := 0.35, width := 2.0) -> void:
+	if world == null:
+		return
+	var r := Ring.new()
+	r.position = pos
+	r.color = color
+	r.width = width
+	r.z_index = 6
+	world.add_child(r)
+	var tw := r.create_tween().set_parallel()
+	tw.tween_property(r, "radius", radius, seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(r, "modulate:a", 0.0, seconds).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(r.queue_free)
+
+class Ring extends Node2D:
+	var radius := 2.0:
+		set(v):
+			radius = v
+			queue_redraw()
+	var color := Color.WHITE
+	var width := 2.0
+	func _draw() -> void:
+		draw_arc(Vector2.ZERO, round(radius), 0, TAU, 24, color, width)

@@ -53,6 +53,15 @@ ataque básico por um tempo (até acabar a carga ou você morrer). Nenhum é mai
 | B | Bumerangue | Disco que vai e volta |
 | H | Rajada | Tiros fracos e muito rápidos (segure o botão) |
 
+### Novidades da 0.3
+
+- **Armas que mudam**: cada poder troca o cajado do Zacarias (tridente, orbe, cristal, lua, raio) e o arco do Tico
+  (arco triplo, arco de orbe, arco de gelo, arco curvo, besta com tambor).
+- **Animações de impacto**: o jogo congela uma fração de segundo nos golpes, inimigos piscam, tremem, espirram gosma e
+  voam para trás ao morrer; levar dano deixa a tela vermelha; morrer dá um clarão; pegar poder solta anéis da cor do poder.
+- **Fosso com água** que reflete o cenário e quem passa por cima. Cair nele = splash e perde uma vida.
+- **Som**: efeitos e músicas feitos em código, em estilo Mega Drive (FM) com pegada synthwave. Melodias originais.
+
 ### Gerar um app (.app) para abrir sem a Godot
 
 Na Godot: **Project > Export**, escolha o preset **macOS** (já vem configurado), clique em **Manage Export Templates**
@@ -68,6 +77,7 @@ game/                    projeto Godot (abra game/project.godot)
   assets/                sprites gerados (não edite à mão: rode os scripts de tools/art)
 tools/pixelfx/           biblioteca de pixel art (submódulo git)
 tools/art/               scripts que geram a arte: characters.mjs (personagens), environment.mjs (cenário e ícones), export_fx.mjs
+tools/audio/             scripts que geram o som: make_sfx.mjs (efeitos), make_music.mjs (músicas)
 NOTES.md                 mapa curto do projeto para as próximas atualizações
 CHANGELOG.md             o que mudou em cada versão
 ```
@@ -76,6 +86,7 @@ CHANGELOG.md             o que mudou em cada versão
 
 Precisa do Node 18+. `node tools/art/characters.mjs` (personagens), `node tools/art/environment.mjs` (cenário),
 `node tools/art/export_fx.mjs` (efeitos do pixelfx listados em `game/data/fx.json`).
+Som: `node tools/audio/make_sfx.mjs` e `node tools/audio/make_music.mjs`. Volumes em `game/data/audio.json`.
 
 ## Licenças
 

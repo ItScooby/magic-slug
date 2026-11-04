@@ -47,12 +47,7 @@ func _ready() -> void:
 func setup(id: String, keep_state := false) -> void:
 	char_id = id
 	data = Game.characters[id]
-	info = Sheets.character(data["sheet"])
-	if sprite:
-		sprite.queue_free()
-	sprite = Sheets.make_sprite(info, "idle")
-	add_child(sprite)
-	sprite.play("idle")
+	_refresh_sprite()
 	if not keep_state:
 		hp = data.get("hp", 3)
 		special_ammo = data.get("special_ammo", 10)
@@ -98,6 +93,7 @@ func _physics_process(delta: float) -> void:
 				drop_time = 0.25           # drop through a platform
 			else:
 				velocity.y = -data.get("jump", 320)
+				Audio.play("jump")
 		if controls_enabled and Input.is_action_just_released("jump") and velocity.y < -120:
 			velocity.y *= 0.55             # short hop when the button is tapped
 		if controls_enabled and Input.is_action_pressed("attack") and attack_cd <= 0:
@@ -106,6 +102,7 @@ func _physics_process(delta: float) -> void:
 				power_charges -= 1
 				if power_charges <= 0:
 					set_power("")
+					Audio.play("power_lost")
 				else:
 					Game.power_changed.emit(power, power_charges)
 		if controls_enabled and Input.is_action_just_pressed("special") and special_ammo > 0 and special_cd <= 0:
@@ -159,9 +156,40 @@ func _attack_spell() -> String:
 
 ## Picks up (or loses, with "") a power.
 func set_power(id: String) -> void:
+	var changed := id != power
 	power = id
 	power_charges = Game.powers["list"][id].get("charges", 20) if id != "" else 0
 	Game.power_changed.emit(power, power_charges)
+	if changed and data:
+		_refresh_sprite()
+		if id != "" and state != "dead":
+			# power acquired: a short freeze, rings and a glow in the power's colour
+			var c := Color(Game.powers["list"][id].get("color", "#ffffff"))
+			Game.hitstop(0.12)
+			Audio.play("power_get")
+			Game.flash(Color(c, 0.25), 0.2)
+			Fx.ring(global_position + Vector2(0, -16), c, 40.0, 0.4)
+			Fx.ring(global_position + Vector2(0, -16), Color.WHITE, 26.0, 0.3, 1.0)
+			sprite.modulate = Color(c.r * 2.5, c.g * 2.5, c.b * 2.5)
+			create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.5)
+
+## Each power puts a different weapon in the hero's hands: sheet "<hero>_<power>" when it exists.
+func _refresh_sprite() -> void:
+	var sheet: String = data["sheet"]
+	if power != "" and ResourceLoader.exists("res://assets/sprites/characters/%s_%s.png" % [sheet, power]):
+		sheet = "%s_%s" % [sheet, power]
+	info = Sheets.character(sheet)
+	var anim := "idle"
+	var frame := 0
+	if sprite:
+		anim = sprite.animation
+		frame = sprite.frame
+		sprite.queue_free()
+	sprite = Sheets.make_sprite(info, anim)
+	sprite.scale.x = facing
+	add_child(sprite)
+	sprite.play(anim)
+	sprite.frame = frame
 
 func _animate() -> void:
 	if sprite == null:
@@ -200,11 +228,17 @@ func take_damage(amount: int, source: Node = null) -> void:
 		return
 	hp -= amount
 	Game.hp_changed.emit(max(hp, 0), data.get("hp", 3))
-	Fx.play("hit_spark", global_position + Vector2(0, -20))
-	Fx.shake(3.0)
+	Fx.play("hit_spark", global_position + Vector2(0, -16), {"modulate": Color(1, 0.5, 0.5)})
+	Fx.shake(4.0)
 	if hp <= 0:
 		die()
 		return
+	Audio.play("hurt")
+	# hurt feedback: freeze, red screen, red hero
+	Game.hitstop(0.08)
+	Game.flash(Color(1, 0, 0, 0.3), 0.25)
+	sprite.modulate = Color(2.5, 0.6, 0.6)
+	create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.3)
 	state = "hurt"
 	hurt_time = 0.3
 	invuln = 1.4
@@ -213,16 +247,25 @@ func take_damage(amount: int, source: Node = null) -> void:
 		from = sign(global_position.x - (source as Node2D).global_position.x)
 	velocity = Vector2(from * 90, -120)
 
-func die() -> void:
+## sink = fell in water: no bounce, the hero just goes under.
+func die(sink := false) -> void:
 	if state == "dead":
 		return
 	state = "dead"
 	hp = 0
 	set_power("")
 	remove_from_group("player")
-	velocity = Vector2(-facing * 60, -160)
+	velocity = Vector2(0, 40) if sink else Vector2(-facing * 60, -160)
 	sprite.visible = true
 	sprite.play("death")
+	Audio.play("player_die")
+	# death feedback: long freeze, white flash, the soul in the hero's colour
+	Game.hitstop(0.35, 0.15)
+	Game.flash(Color(1, 1, 1, 0.6), 0.5)
+	Fx.shake(6.0)
+	var tint := Color(data.get("color", "#ffffff"))
+	Fx.ring(global_position + Vector2(0, -16), tint, 48.0, 0.5)
+	Fx.play("soul", global_position, {"modulate": Color(tint, 0.9)})
 	await get_tree().create_timer(1.6).timeout
 	died.emit()
 

@@ -27,6 +27,10 @@ func _ready() -> void:
 	_build_background()
 	for seg in data["ground"]:
 		_ground(seg[0], seg[1], seg[2], seg[3] if seg.size() > 3 else "stone")
+	for w in data.get("water", []):
+		var water := Water.new()
+		water.setup(w[0], w[1], w[2])
+		add_child(water)
 	for p in data.get("platforms", []):
 		_platform(p[0], p[1], p[2])
 	for prop in data.get("props", []):
@@ -55,6 +59,7 @@ func _ready() -> void:
 	player._emit_stats()
 	Game.lives_changed.emit(Game.lives)
 	Game.say(data.get("name", "Missao"), 2.5)
+	Audio.music(data.get("music", "level"))
 
 func _process(_delta: float) -> void:
 	if player == null:
@@ -72,6 +77,7 @@ func _process(_delta: float) -> void:
 		var next: String = ids[(ids.find(player.char_id) + 1) % ids.size()]
 		Game.selected_character = next
 		player.setup(next, true)
+		Audio.play("swap")
 		Fx.play("poof", player.global_position)
 
 func _check_spawns() -> void:
@@ -186,6 +192,8 @@ func _on_player_died() -> void:
 		Fx.play("poof", player.global_position)
 	else:
 		Game.say("GAME OVER", 4.0)
+		Audio.stop_music()
+		Audio.play("game_over")
 		ended = true
 		await get_tree().create_timer(4.0).timeout
 		finished.emit(false)
@@ -194,6 +202,8 @@ func _win() -> void:
 	ended = true
 	player.controls_enabled = false
 	Game.say("MISSAO COMPLETA!\nFim da demo", 4.0)
+	Audio.stop_music()
+	Audio.play("win")
 	Fx.play("explosion", Vector2(data.get("end_x", 3000) + 40, _ground_y(data.get("end_x", 3000))))
 	await get_tree().create_timer(4.5).timeout
 	finished.emit(true)

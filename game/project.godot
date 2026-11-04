@@ -15,6 +15,7 @@ config/features=PackedStringArray("4.3", "GL Compatibility")
 Game="*res://scripts/core/game.gd"
 Sheets="*res://scripts/core/sheets.gd"
 Fx="*res://scripts/core/fx.gd"
+Audio="*res://scripts/core/audio.gd"
 
 [display]
 

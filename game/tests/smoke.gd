@@ -72,6 +72,8 @@ func _process(delta: float) -> void:
 					print("power: ", ids[k])
 				lvl.player.invuln = 0.5   # the bot can't dodge; make it survive to test the whole level
 				var x: float = lvl.player.global_position.x
+				if x > 1430 and not has_meta("water_shot"):
+					set_meta("water_shot", true); shot("water")
 				var near_edge := (x > 870 and x < 960) or (x > 1460 and x < 1560) or (x > 1960 and x < 2040)
 				if near_edge:
 					press("jump", lvl.player.is_on_floor() and not Input.is_action_pressed("jump") or lvl.player.velocity.y < 0)

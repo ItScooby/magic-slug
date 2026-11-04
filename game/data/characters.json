@@ -1,5 +1,5 @@
 {
- "_doc": "Playable characters. sheet = game/assets/sprites/characters/<sheet>.png (made by tools/art/characters.mjs). attack/special = keys in spells.json.",
+ "_doc": "Playable characters. sheet = game/assets/sprites/characters/<sheet>.png (made by tools/art/characters.mjs). attack/special = keys in spells.json. color = hero tint used by effects (death soul).",
  "mage": {
   "name": "Zacarias, o Mago",
   "sheet": "mage",
@@ -9,7 +9,8 @@
   "attack": "fireball",
   "special": "meteor",
   "special_ammo": 10,
-  "desc": "Bola de fogo forte. Especial: Meteoro."
+  "desc": "Bola de fogo forte. Especial: Meteoro.",
+  "color": "#ff7a3a"
  },
  "archer": {
   "name": "Tico, o Arqueiro",
@@ -20,6 +21,7 @@
   "attack": "arrow_shot",
   "special": "arrow_rain",
   "special_ammo": 10,
-  "desc": "Uma flecha rapida e certeira. Especial: Chuva de flechas."
+  "desc": "Uma flecha rapida e certeira. Especial: Chuva de flechas.",
+  "color": "#6ee06a"
  }
 }

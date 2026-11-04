@@ -81,10 +81,12 @@ func _on_body(body: Node) -> void:
 				return
 			hit_ids[body.get_instance_id()] = true
 			body.take_damage(spell.get("damage", 1), self)
+			Audio.play("hit")
 			if hit_fx != "":
 				Fx.play(hit_fx, global_position, {"flip": velocity.x < 0})
 		else:
 			body.take_damage(spell.get("damage", 1), self)
+			Audio.play("hit")
 			_impact(hit_fx)
 	else:
 		# a wall or the floor
@@ -115,6 +117,7 @@ func _explode() -> void:
 	var fx_name: String = spell.get("explode_fx", "")
 	if fx_name != "":
 		Fx.play(fx_name, Vector2(global_position.x, global_position.y + 4))
+	Audio.play("explosion" if area > 30 else "squish")
 	if area > 30:
 		Fx.shake(4.0)
 	queue_free()

@@ -16,6 +16,10 @@ static func cast(spell_name: String, origin: Vector2, aim: Vector2, facing: int,
 			spell["fx"] = base.get("fx", "fireball")
 		if spell.get("hit_fx", "") == "@hero":
 			spell["hit_fx"] = base.get("hit_fx", "")
+	var sfx: String = spell.get("sfx", "")
+	if sfx == "@hero":
+		sfx = Game.spells.get(hero_spell, {}).get("sfx", "")
+	Audio.play(sfx)
 	match spell.get("type", "projectile"):
 		"projectile":
 			var n: int = spell.get("count", 1)

@@ -12,6 +12,7 @@ var desc_label: Label
 var cooldown := 0.3
 
 func _ready() -> void:
+	Audio.music("title")
 	ids = Game.characters.keys()
 	index = max(0, ids.find(Game.selected_character))
 	var bg := Sprite2D.new()
@@ -70,12 +71,15 @@ func _process(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("left"):
 		index = (index - 1 + ids.size()) % ids.size()
+		Audio.play("select")
 		_refresh()
 	elif Input.is_action_just_pressed("right"):
 		index = (index + 1) % ids.size()
+		Audio.play("select")
 		_refresh()
 	elif Input.is_action_just_pressed("jump") or Input.is_action_just_pressed("attack") or Input.is_action_just_pressed("pause"):
 		Game.selected_character = ids[index]
+		Audio.play("start")
 		start.emit(ids[index])
 
 func _exit_tree() -> void:
