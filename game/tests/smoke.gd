@@ -64,6 +64,12 @@ func _process(delta: float) -> void:
 				# keep running and shooting; jump now and then
 				if int(t * 10) % 40 == 0 and int(t * 10) != last_shot:
 					last_shot = int(t * 10); shot("run_%02d" % int(t))
+				# try every power for a few seconds each
+				var ids: Array = Game.powers["list"].keys()
+				var k := int(t / 3.0)
+				if k < ids.size() and lvl.player.power != ids[k]:
+					lvl.player.set_power(ids[k])
+					print("power: ", ids[k])
 				lvl.player.invuln = 0.5   # the bot can't dodge; make it survive to test the whole level
 				var x: float = lvl.player.global_position.x
 				var near_edge := (x > 870 and x < 960) or (x > 1460 and x < 1560) or (x > 1960 and x < 2040)

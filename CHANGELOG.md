@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 (2026-11-04)
+
+- New look: caricature chibi characters drawn from pixel templates. Zacarias, o Mago (red nose, broom eyebrows,
+  giant hat) and Tico, o Arqueiro (ginger, big chin, buck teeth, feathered cap). New zombies: popped eye and brain
+  showing; the spitter is bloated and drools acid.
+- Archer's basic attack is now a single arrow (2 damage).
+- Powers dropped by enemies (20%, bats 10%), Metal Slug style: Tiro Triplo, Ricochete, Lanca de Gelo, Bumerangue,
+  Rajada. Temporary (charges), lost on death, shown on the HUD.
+
 ## 0.1.0 (2026-11-04) Demo
 
 - Godot 4 project, 480x270 pixel art, runs natively on macOS (Apple Silicon).

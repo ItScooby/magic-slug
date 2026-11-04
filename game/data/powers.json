@@ -1,0 +1,11 @@
+{
+ "_doc": "Powers dropped by enemies (like Metal Slug weapons). While active they replace the hero's basic attack for `charges` casts; dying loses them. spell = key in spells.json. weight = how often it drops compared to the others. Icon art: node tools/art/environment.mjs (reads letter + color). drop_chance = chance an enemy drops one (enemies.json can override with its own drop_chance).",
+ "drop_chance": 0.2,
+ "list": {
+  "triplo":     {"name": "Tiro Triplo",   "letter": "T", "color": "#ff9a3a", "spell": "p_triplo",     "charges": 30, "weight": 3},
+  "ricochete":  {"name": "Ricochete",     "letter": "R", "color": "#b06aff", "spell": "p_ricochete",  "charges": 25, "weight": 2},
+  "gelo":       {"name": "Lanca de Gelo", "letter": "G", "color": "#7fdcff", "spell": "p_gelo",       "charges": 25, "weight": 2},
+  "bumerangue": {"name": "Bumerangue",    "letter": "B", "color": "#5cff9a", "spell": "p_bumerangue", "charges": 20, "weight": 2},
+  "rajada":     {"name": "Rajada",        "letter": "H", "color": "#ffd84a", "spell": "p_rajada",     "charges": 80, "weight": 2}
+ }
+}

@@ -197,11 +197,23 @@ func take_damage(amount: int, _source: Node = null) -> void:
 		timer = 0.15
 		_anim("hurt")
 
+## Metal Slug style: a dead enemy may leave a power behind.
+func _maybe_drop() -> void:
+	var id := Game.roll_power(data.get("drop_chance", -1.0))
+	if id == "" or not is_instance_valid(Fx.world):
+		return
+	var pk := Pickup.new()
+	pk.kind = "power"
+	pk.power_id = id
+	pk.position = global_position + Vector2(0, -12 if not flies else 0)
+	Fx.world.add_child.call_deferred(pk)
+
 func _die() -> void:
 	state = "dead"
 	remove_from_group("enemies")
 	collision_layer = 0
 	Game.add_score(data.get("score", 100))
+	_maybe_drop()
 	if flies:
 		Fx.play("poof", global_position + Vector2(0, 8))
 		queue_free()

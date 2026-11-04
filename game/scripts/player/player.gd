@@ -19,6 +19,8 @@ var crouch_rect := RectangleShape2D.new()
 var facing := 1
 var hp := 3
 var special_ammo := 10
+var power := ""               ## active power from data/powers.json ("" = the hero's own attack)
+var power_charges := 0
 var attack_cd := 0.0
 var special_cd := 0.0
 var shoot_pose := 0.0
@@ -59,6 +61,7 @@ func setup(id: String, keep_state := false) -> void:
 func _emit_stats() -> void:
 	Game.hp_changed.emit(hp, data.get("hp", 3))
 	Game.special_changed.emit(special_ammo)
+	Game.power_changed.emit(power, power_charges)
 
 func _physics_process(delta: float) -> void:
 	attack_cd -= delta
@@ -98,7 +101,13 @@ func _physics_process(delta: float) -> void:
 		if controls_enabled and Input.is_action_just_released("jump") and velocity.y < -120:
 			velocity.y *= 0.55             # short hop when the button is tapped
 		if controls_enabled and Input.is_action_pressed("attack") and attack_cd <= 0:
-			_cast(data["attack"], up, down)
+			_cast(_attack_spell(), up, down)
+			if power != "":
+				power_charges -= 1
+				if power_charges <= 0:
+					set_power("")
+				else:
+					Game.power_changed.emit(power, power_charges)
 		if controls_enabled and Input.is_action_just_pressed("special") and special_ammo > 0 and special_cd <= 0:
 			special_ammo -= 1
 			Game.special_changed.emit(special_ammo)
@@ -139,9 +148,20 @@ func _cast(spell_name: String, up: bool, down: bool, special := false) -> void:
 	shoot_pose = SHOOT_POSE_TIME if not special else 0.4
 	var m: Vector2 = info["muzzles"].get(shoot_anim, Vector2(12, -24))
 	var origin := global_position + Vector2(m.x * facing, m.y)
-	Spells.cast(spell_name, origin, aim, facing, "player")
+	Spells.cast(spell_name, origin, aim, facing, "player", self, data["attack"])
 	sprite.play(shoot_anim)
 	sprite.frame = 1
+
+func _attack_spell() -> String:
+	if power != "":
+		return Game.powers["list"][power]["spell"]
+	return data["attack"]
+
+## Picks up (or loses, with "") a power.
+func set_power(id: String) -> void:
+	power = id
+	power_charges = Game.powers["list"][id].get("charges", 20) if id != "" else 0
+	Game.power_changed.emit(power, power_charges)
 
 func _animate() -> void:
 	if sprite == null:
@@ -198,6 +218,7 @@ func die() -> void:
 		return
 	state = "dead"
 	hp = 0
+	set_power("")
 	remove_from_group("player")
 	velocity = Vector2(-facing * 60, -160)
 	sprite.visible = true
