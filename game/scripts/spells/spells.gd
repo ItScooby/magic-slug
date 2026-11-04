@@ -3,18 +3,31 @@ class_name Spells
 ## `type` branch below.
 
 ## origin: where it leaves the hand. aim: unit direction (right, left, up, down). facing: 1 or -1.
-static func cast(spell_name: String, origin: Vector2, aim: Vector2, facing: int, team: String) -> void:
+## caster: who cast it (boomerangs fly back to it). hero_spell: the caster's basic attack, for fx "@hero".
+static func cast(spell_name: String, origin: Vector2, aim: Vector2, facing: int, team: String, caster: Node2D = null, hero_spell := "") -> void:
 	var spell: Dictionary = Game.spells.get(spell_name, {})
 	if spell.is_empty() or not is_instance_valid(Fx.world):
 		push_warning("Unknown spell " + spell_name)
 		return
+	if spell.get("fx", "") == "@hero" or spell.get("hit_fx", "") == "@hero":
+		var base: Dictionary = Game.spells.get(hero_spell, {})
+		spell = spell.duplicate()
+		if spell["fx"] == "@hero":
+			spell["fx"] = base.get("fx", "fireball")
+		if spell.get("hit_fx", "") == "@hero":
+			spell["hit_fx"] = base.get("hit_fx", "")
 	match spell.get("type", "projectile"):
 		"projectile":
 			var n: int = spell.get("count", 1)
 			var spread: float = deg_to_rad(spell.get("spread", 0.0))
+			var jitter: float = deg_to_rad(spell.get("jitter", 0.0))
 			for i in n:
-				var a := aim.angle() + (i - (n - 1) / 2.0) * spread
-				_spawn(spell, team, origin, Vector2.from_angle(a) * spell.get("speed", 300.0), 0.0)
+				var a := aim.angle() + (i - (n - 1) / 2.0) * spread + randf_range(-jitter, jitter)
+				var v: Vector2 = Vector2.from_angle(a) * spell.get("speed", 300.0)
+				if spell.has("lift") and abs(aim.y) < 0.5:
+					v.y -= spell["lift"]
+				var p := _spawn(spell, team, origin, v, 0.0)
+				p.caster = caster
 		"lob":
 			var speed: float = spell.get("speed", 180.0)
 			var v := Vector2(facing * speed, -spell.get("lift", 200.0))

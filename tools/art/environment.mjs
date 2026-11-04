@@ -3,6 +3,7 @@
 // Everything is drawn in code (like pixelfx): change a color or a shape here and re-run.
 import { Canvas, hash, rgb } from "./lib/canvas.mjs";
 import { join, dirname } from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -144,6 +145,34 @@ function props() {
   g.outline("#0e0c14"); g.save(join(OUT, "gate.png"));
 }
 
-tiles(); far(); mid(); props();
+// ---- power icons: a glowing rune stone with the power's letter (game/data/powers.json: letter, color)
+const FONT = {
+  A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"], B: ["11110", "10001", "11110", "10001", "10001", "10001", "11110"],
+  C: ["01111", "10000", "10000", "10000", "10000", "10000", "01111"], F: ["11111", "10000", "11110", "10000", "10000", "10000", "10000"],
+  G: ["01111", "10000", "10000", "10011", "10001", "10001", "01111"], H: ["10001", "10001", "10001", "11111", "10001", "10001", "10001"],
+  L: ["10000", "10000", "10000", "10000", "10000", "10000", "11111"], R: ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+  S: ["01111", "10000", "10000", "01110", "00001", "00001", "11110"], T: ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  X: ["10001", "01010", "00100", "00100", "00100", "01010", "10001"],
+};
+const shade = (hex, k) => { const c = rgb(hex); return [Math.round(c[0] * k), Math.round(c[1] * k), Math.round(c[2] * k), 255].map((v, i) => (i < 3 ? Math.min(255, v) : v)); };
+function powerIcons() {
+  const data = JSON.parse(readFileSync(join(ROOT, "game", "data", "powers.json"), "utf8"));
+  for (const [id, p] of Object.entries(data.list)) {
+    const c = new Canvas(20, 20), cx = 10, cy = 10;
+    // diamond-shaped stone with a bevel
+    c.poly([[cx, 1], [19, cy], [cx, 19], [1, cy]], (x, y) => {
+      const u = (x - cx) + (y - cy);
+      return u < -5 ? shade(p.color, 1.35) : u < 2 ? shade(p.color, 1.0) : shade(p.color, 0.62);
+    });
+    c.poly([[cx, 4], [16, cy], [cx, 16], [4, cy]], shade(p.color, 0.42));
+    const g = FONT[p.letter] ?? FONT.X;
+    g.forEach((row, j) => [...row].forEach((b, i) => { if (b === "1") c.set(cx - 2 + i, cy - 3 + j, "#ffffff"); }));
+    c.set(cx - 3, 5, "#ffffff"); c.set(cx - 4, 6, shade(p.color, 1.6));
+    c.outline("#120c1c");
+    c.save(join(ROOT, "game", "assets", "sprites", "powers", id + ".png"));
+  }
+}
+
+tiles(); far(); mid(); props(); powerIcons();
 console.log("environment art ->", OUT);
 void rgb;

@@ -1,23 +1,122 @@
 {
- "_doc": "Spells. type: projectile (straight), lob (arc + area damage), rain (projectiles falling on an area ahead). fx/hit_fx/explode_fx = keys in fx.json. Speeds in px/s, cooldown in s.",
+ "_doc": "Spells. type: projectile (straight), lob (arc + area damage), rain (projectiles falling on an area ahead). Extra projectile flags: pierce (goes through enemies), bounces (bounces on the floor N times, needs gravity), boomerang (comes back after range), jitter (random aim in degrees), lift (initial upward speed). fx '@hero' = the hero's own basic-attack look. Speeds in px/s, cooldown in s.",
  "fireball": {
-  "type": "projectile", "fx": "fireball", "hit_fx": "hit_fire", "sound": "",
-  "speed": 250, "damage": 3, "cooldown": 0.38, "count": 1, "spread": 0, "radius": 7, "range": 420
+  "type": "projectile",
+  "fx": "fireball",
+  "hit_fx": "hit_fire",
+  "sound": "",
+  "speed": 250,
+  "damage": 3,
+  "cooldown": 0.38,
+  "count": 1,
+  "spread": 0,
+  "radius": 7,
+  "range": 420
  },
- "arrow_volley": {
-  "type": "projectile", "fx": "arrow", "hit_fx": "hit_spark",
-  "speed": 400, "damage": 1, "cooldown": 0.3, "count": 3, "spread": 4, "radius": 4, "range": 420
+ "arrow_shot": {
+  "type": "projectile",
+  "fx": "arrow",
+  "hit_fx": "hit_spark",
+  "speed": 400,
+  "damage": 2,
+  "cooldown": 0.28,
+  "count": 1,
+  "spread": 0,
+  "radius": 4,
+  "range": 420
  },
  "meteor": {
-  "type": "lob", "fx": "fireball", "explode_fx": "explosion",
-  "speed": 190, "lift": 230, "damage": 8, "area": 52, "cooldown": 0.6, "radius": 7
+  "type": "lob",
+  "fx": "fireball",
+  "explode_fx": "explosion",
+  "speed": 190,
+  "lift": 230,
+  "damage": 8,
+  "area": 52,
+  "cooldown": 0.6,
+  "radius": 7
  },
  "arrow_rain": {
-  "type": "rain", "fx": "arrow", "hit_fx": "hit_spark",
-  "count": 9, "damage": 3, "ahead": 120, "width": 110, "delay": 0.35, "speed": 420, "cooldown": 0.8, "radius": 5
+  "type": "rain",
+  "fx": "arrow",
+  "hit_fx": "hit_spark",
+  "count": 9,
+  "damage": 3,
+  "ahead": 120,
+  "width": 110,
+  "delay": 0.35,
+  "speed": 420,
+  "cooldown": 0.8,
+  "radius": 5
  },
  "acid": {
-  "type": "lob", "fx": "acid_glob", "explode_fx": "acid_splash",
-  "speed": 150, "lift": 170, "damage": 1, "area": 14, "cooldown": 0, "radius": 5
+  "type": "lob",
+  "fx": "acid_glob",
+  "explode_fx": "acid_splash",
+  "speed": 150,
+  "lift": 170,
+  "damage": 1,
+  "area": 14,
+  "cooldown": 0,
+  "radius": 5
+ },
+ "p_triplo": {
+  "type": "projectile",
+  "fx": "@hero",
+  "hit_fx": "@hero",
+  "speed": 300,
+  "damage": 1,
+  "cooldown": 0.34,
+  "count": 3,
+  "spread": 14,
+  "radius": 5,
+  "range": 300
+ },
+ "p_ricochete": {
+  "type": "projectile",
+  "fx": "orb",
+  "hit_fx": "hit_spark",
+  "speed": 200,
+  "lift": 90,
+  "gravity": 520,
+  "bounces": 4,
+  "damage": 2,
+  "cooldown": 0.42,
+  "radius": 6,
+  "range": 900
+ },
+ "p_gelo": {
+  "type": "projectile",
+  "fx": "ice_lance",
+  "hit_fx": "hit_spark",
+  "speed": 340,
+  "damage": 2,
+  "pierce": true,
+  "cooldown": 0.5,
+  "radius": 5,
+  "range": 480
+ },
+ "p_bumerangue": {
+  "type": "projectile",
+  "fx": "disc",
+  "hit_fx": "hit_spark",
+  "speed": 320,
+  "damage": 1,
+  "pierce": true,
+  "boomerang": true,
+  "cooldown": 0.55,
+  "radius": 7,
+  "range": 150
+ },
+ "p_rajada": {
+  "type": "projectile",
+  "fx": "spark_bolt",
+  "hit_fx": "hit_spark",
+  "speed": 460,
+  "damage": 1,
+  "cooldown": 0.09,
+  "jitter": 5,
+  "radius": 3,
+  "range": 380
  }
 }

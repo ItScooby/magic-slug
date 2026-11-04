@@ -80,5 +80,48 @@
  "gem": {
   "id": "pickups/gem-spin",
   "fps": 15
+ },
+ "orb": {
+  "id": "projectiles/plasma-shot",
+  "fps": 20,
+  "opts": {
+   "palette": [
+    "#140a26",
+    "#2b1252",
+    "#481c88",
+    "#6b2cc0",
+    "#9a48ec",
+    "#c684ff",
+    "#ecc8ff",
+    "#ffffff"
+   ]
+  }
+ },
+ "ice_lance": {
+  "id": "ice/ice-lance",
+  "fps": 20
+ },
+ "disc": {
+  "id": "projectiles/energy-disc",
+  "fps": 20
+ },
+ "spark_bolt": {
+  "id": "projectiles/laser-bolt",
+  "fps": 20,
+  "opts": {
+   "palette": [
+    "#2a1404",
+    "#5a2e08",
+    "#9a5a10",
+    "#d89a20",
+    "#ffd04a",
+    "#fff09a",
+    "#ffffff"
+   ]
+  }
+ },
+ "power_get": {
+  "id": "pickups/collect-burst",
+  "fps": 20
  }
 }

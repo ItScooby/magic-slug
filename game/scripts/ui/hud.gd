@@ -9,6 +9,7 @@ var score_label: Label
 var msg_label: Label
 var pause_label: Label
 var help_label: Label
+var power_label: Label
 var msg_time := 0.0
 
 func _ready() -> void:
@@ -17,6 +18,7 @@ func _ready() -> void:
 	hp_label = _label(Vector2(8, 6), Color("#ff6a6a"))
 	special_label = _label(Vector2(8, 18), Color("#8fd6ff"))
 	lives_label = _label(Vector2(8, 30), Color("#f2c14e"))
+	power_label = _label(Vector2(8, 42), Color.WHITE)
 	score_label = _label(Vector2(330, 6), Color.WHITE)
 	score_label.size.x = 142
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -37,6 +39,7 @@ func _ready() -> void:
 	Game.lives_changed.connect(func(v): lives_label.text = "VIDAS  %d" % v)
 	Game.score_changed.connect(func(v): score_label.text = "%07d" % v)
 	Game.message.connect(_on_message)
+	Game.power_changed.connect(_on_power)
 	lives_label.text = "VIDAS  %d" % Game.lives
 	score_label.text = "%07d" % Game.score
 	get_tree().create_timer(8.0).timeout.connect(func(): if is_instance_valid(help_label): help_label.visible = false)
@@ -53,6 +56,14 @@ func _label(pos: Vector2, color: Color, size := 8) -> Label:
 
 func _on_hp(v: int, max_v: int) -> void:
 	hp_label.text = "VIDA  " + "♥".repeat(max(v, 0)) + "·".repeat(max(max_v - v, 0))
+
+func _on_power(id: String, charges: int) -> void:
+	if id == "":
+		power_label.text = ""
+		return
+	var info: Dictionary = Game.powers["list"][id]
+	power_label.text = "PODER  %s  x%d" % [info["name"].to_upper(), charges]
+	power_label.add_theme_color_override("font_color", Color(info["color"]))
 
 func _on_message(text: String, seconds: float) -> void:
 	msg_label.text = text
