@@ -22,8 +22,15 @@ Nodes are built in code (no hand-made scenes except `scenes/main.tscn`). Balance
 | HUD / title / character select | `scripts/ui/hud.gd`, `scripts/ui/title.gd` |
 | Character look and animations | `tools/art/characters.mjs` (templates, palettes, poses), re-run it |
 | Tiles, backgrounds, props art | `tools/art/environment.mjs`, re-run it |
+| Weapon each hero holds per power | `MAGE_STAFFS` / `ARCHER_BOWS` in `tools/art/characters.mjs` (sheet `<hero>_<power>`, swapped by `Player._refresh_sprite()`) |
+| Hit / hurt / death / power-up feedback | `Enemy.take_damage/_die`, `Player.take_damage/die/set_power`; helpers `Game.hitstop()`, `Game.flash()`, `Fx.ring()` |
+| Water pits (reflection, splash) | `"water"` in the level JSON; look in `shaders/water.gdshader`, behaviour in `scripts/level/water.gd` |
+| Sound volumes, which song plays where | `game/data/audio.json`; cast sounds = `sfx` in spells.json; enemy `hit_sfx`/`die_sfx` |
+| Make or change a sound effect | recipe in `tools/audio/make_sfx.mjs`, run `node tools/audio/make_sfx.mjs <name>` |
+| Music (original, Mega Drive FM + synthwave) | songs as text in `tools/audio/make_music.mjs` (chords + melody), run it |
 
-Autoloads: `Game` (data, score, lives, signals), `Sheets` (sprite sheets -> SpriteFrames), `Fx` (play effects, shake).
+Autoloads: `Game` (data, score, lives, signals, hitstop, flash), `Sheets` (sprite sheets -> SpriteFrames), `Fx` (play effects,
+shake, ring), `Audio` (`Audio.play("jump")`, `Audio.music("level")`).
 Collision layers: 1 world, 2 player, 4 enemy, 8 player shot, 16 enemy shot, 32 pickup, 64 one-way platform.
 
 ## Art pipeline
@@ -35,8 +42,15 @@ Collision layers: 1 world, 2 player, 4 enemy, 8 player shot, 16 enemy shot, 32 p
   Required animations for heroes: idle run jump crouch shoot shoot_up crouch_shoot shoot_down special hurt death.
   Enemies: walk attack spit hurt death.
 - Effects = pixelfx sheets (`--sheet`), pivot = effect origin, all face right (flip with scale.x, rotate for aim).
+  `nudge` in fx.json moves an effect whose drawing sits off its pivot.
 - Don't scale pixel art by non-integers; pick/adjust effects with pixelfx options instead (`size`, `palette`).
 - The pixelfx skill is in `tools/pixelfx/skills/pixelfx/SKILL.md` for making new effects.
+
+## Sound pipeline
+
+Everything is synthesized by `tools/audio/synth.mjs` (oscillators, 2-operator FM like the Mega Drive's YM2612, noise,
+drums, echo) into 22 kHz mono WAVs in `game/assets/audio/`. Seeded random, so rebuilding gives the same files.
+Music loops seamlessly (`Audio.music` sets the loop points). Keep melodies original.
 
 ## Testing
 
@@ -45,5 +59,5 @@ With a display, `SHOTS=/some/dir` saves screenshots. Excluded from exports.
 
 ## Ideas not done yet
 
-Sound and music, melee attack when an enemy is close (Metal Slug knife), rescuing prisoners, a boss, more levels,
+Melee attack when an enemy is close (Metal Slug knife), rescuing prisoners, a boss, more levels,
 a second player, power-up spells (pickups that change the basic attack for a while).

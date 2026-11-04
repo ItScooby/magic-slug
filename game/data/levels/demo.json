@@ -1,5 +1,5 @@
 {
- "_doc": "Level layout. Units are pixels (screen is 480x270). ground: [x_from, x_to, top_y]; gaps between segments are pits. platforms: [x, y, width] (one-way, jump through from below). tile: stone|temple. props: decoration. spawns: when the camera's right edge passes 'at', spawn 'enemy' at x (y defaults to the ground). end_x: where the exit gate is.",
+ "_doc": "Level layout. Units are pixels (screen is 480x270). ground: [x_from, x_to, top_y]; gaps between segments are pits. platforms: [x, y, width] (one-way, jump through from below). tile: stone|temple. props: decoration. spawns: when the camera's right edge passes 'at', spawn 'enemy' at x (y defaults to the ground). end_x: where the exit gate is. water: [x_from, x_to, surface_y] fills a gap with water that mirrors the scenery.",
  "name": "Demo: Masmorra do Templo",
  "length": 3400,
  "ground": [
@@ -8,6 +8,9 @@
   [1180, 1500, 230, "stone"],
   [1540, 2000, 230, "stone"],
   [2000, 3400, 222, "temple"]
+ ],
+ "water": [
+  [1500, 1540, 238]
  ],
  "platforms": [
   [420, 182, 64], [640, 170, 80], [1260, 176, 96], [1700, 172, 64], [1820, 146, 64], [2400, 170, 96], [2760, 180, 80]

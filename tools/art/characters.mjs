@@ -82,21 +82,65 @@ const MAGE_ROBE = tpl([
   "qRRRRRRRRRQq",
 ]);
 
+// Weapon variants: each power gives the hero a different weapon (sheet "<hero>_<power>").
+// wood: [light, dark] shaft; glow: [outer, inner, core] for the casting flame; top: ornament drawer.
+let VARIANT = "base";
+const MAGE_STAFFS = {
+  base:       { wood: ["#a8693a", "#6e4022"], glow: ["#ff6a3d", "#ffc14d", "#fff7d6"], top: "fire" },
+  triplo:     { wood: ["#c0703a", "#7a3e1e"], glow: ["#ff8a2a", "#ffd04a", "#fff7d6"], top: "trident" },
+  ricochete:  { wood: ["#5a3a7a", "#38204e"], glow: ["#9a48ec", "#c684ff", "#ffffff"], top: "orb" },
+  gelo:       { wood: ["#cfe8f4", "#7aa8c4"], glow: ["#5ac8ff", "#bff0ff", "#ffffff"], top: "crystal" },
+  bumerangue: { wood: ["#4a8a4a", "#2a5a2e"], glow: ["#3ee08a", "#a8ffcc", "#ffffff"], top: "crescent" },
+  rajada:     { wood: ["#e0b040", "#9a6a18"], glow: ["#ffd84a", "#fff09a", "#ffffff"], top: "bolt" },
+};
+const STAFF_LEN = 26, STAFF_GRIP = 0.38;
+function staffTip(hx, hy, ang) { return [hx + Math.cos(ang) * STAFF_LEN * (1 - STAFF_GRIP), hy + Math.sin(ang) * STAFF_LEN * (1 - STAFF_GRIP)]; }
+function drawStaff(c, hx, hy, ang, W) {
+  const ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux;
+  const [tx, ty] = staffTip(hx, hy, ang), bx = hx - ux * STAFF_LEN * STAFF_GRIP, by = hy - uy * STAFF_LEN * STAFF_GRIP;
+  c.line(bx, by, tx, ty, W.wood[1]); c.line(bx - px * 0.8, by - py * 0.8, tx - px * 0.8, ty - py * 0.8, W.wood[0]);
+  const [g0, g1, g2] = W.glow, at = (a, b) => [tx + ux * a + px * b, ty + uy * a + py * b];
+  switch (W.top) {
+    case "fire": {
+      const o = at(2.5, 0);
+      c.line(...at(0, -2.5), ...at(3, -3), W.wood[1]); c.line(...at(0, 2.5), ...at(3, 3), W.wood[1]);
+      c.ellipse(o[0] + 0.5, o[1] + 0.5, 2.6, 2.6, (x, y) => (x + y < o[0] + o[1] - 1 ? g2 : x + y < o[0] + o[1] + 1.5 ? g1 : g0));
+      break;
+    }
+    case "trident":
+      for (const b of [-3, 0, 3]) { const a0 = at(0, b * 0.4), a1 = at(b ? 5 : 7, b); c.line(a0[0], a0[1], a1[0], a1[1], "#d8d8e8"); c.set(Math.round(a1[0]), Math.round(a1[1]), g1); }
+      c.line(...at(0, -3), ...at(0, 3), W.wood[1]);
+      break;
+    case "orb": {
+      const o = at(3.5, 0);
+      c.ellipse(o[0] + 0.5, o[1] + 0.5, 3.4, 3.4, W.wood[1]);
+      c.ellipse(o[0] + 0.5, o[1] + 0.5, 2.4, 2.4, (x, y) => (x + y < o[0] + o[1] ? g1 : g0)); c.set(Math.round(o[0]) - 1, Math.round(o[1]) - 1, g2);
+      break;
+    }
+    case "crystal":
+      c.poly([at(-1, 0), at(3, -2.6), at(9, 0), at(3, 2.6)], (x, y) => ((x - tx) * px + (y - ty) * py < 0 ? g2 : g1));
+      c.line(...at(0, 0), ...at(8, 0), g0);
+      break;
+    case "crescent":
+      for (let k = -1; k <= 1.01; k += 0.1) { const q = at(3 + Math.cos(k * 1.6) * 4, Math.sin(k * 1.6) * 5); c.set(Math.round(q[0]), Math.round(q[1]), Math.abs(k) > 0.8 ? g2 : g0); const q2 = at(3.6 + Math.cos(k * 1.6) * 4, Math.sin(k * 1.6) * 5); c.set(Math.round(q2[0]), Math.round(q2[1]), g1); }
+      break;
+    case "bolt": {
+      const pts = [at(0, 0), at(2.5, 2), at(4, -1.5), at(6.5, 1.5), at(8.5, -0.5)];
+      for (let i = 0; i < pts.length - 1; i++) { c.line(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], g0); c.line(pts[i][0] + px, pts[i][1] + py, pts[i + 1][0] + px, pts[i + 1][1] + py, g1); }
+      break;
+    }
+  }
+}
+
 function drawMage(pose) {
-  const D = new Doll(CELL, "#1b1024"), J = joints(pose, DIMS), P = MAGE_PAL;
+  const D = new Doll(CELL, "#1b1024"), J = joints(pose, DIMS), P = MAGE_PAL, W = MAGE_STAFFS[VARIANT];
   const X = (v) => CELL.ox + v, Y = (v) => CELL.oy + v;
   const it = J.p.item ?? {};
-  // far arm + staff
+  // far arm: an open hand
   D.layer((c) => {
-    const a = J.arms.far;
-    const hx = X(a.ex), hy = Y(a.ey), ang = it.staffAngle ?? -1.45, len = 30;
-    const tx = hx + Math.cos(ang) * (len * 0.62), ty = hy + Math.sin(ang) * (len * 0.62);
-    const bx = hx - Math.cos(ang) * (len * 0.38), by = hy - Math.sin(ang) * (len * 0.38);
-    c.line(bx, by, tx, ty, P.T); c.line(bx + 1, by, tx + 1, ty, P.t);
-    // a forked top holding the fire stone
-    c.ellipse(tx + 0.5, ty - 0.5, 3.2, 3.2, (x, y) => ((x - tx) + (y - ty) < -2 ? P.h : (x - tx) + (y - ty) < 1 ? P.O : P.o));
-    capsule(c, X(J.shF[0]), Y(J.shF[1]), X(a.jx), Y(a.jy), 1.6, [P.Q, P.q, P.z]);
-    capsule(c, X(a.jx), Y(a.jy), hx, hy, 1.6, [P.Q, P.q, P.z]);
+    const a = J.arms.far, hx = X(a.ex), hy = Y(a.ey);
+    capsule(c, X(J.shF[0]), Y(J.shF[1]), X(a.jx), Y(a.jy), 1.7, [P.Q, P.q, P.z]);
+    capsule(c, X(a.jx), Y(a.jy), hx, hy, 1.7, [P.Q, P.q, P.z]);
     c.ellipse(hx, hy, 1.7, 1.7, P.S);
   });
   // legs: little curled slippers under the robe
@@ -121,24 +165,26 @@ function drawMage(pose) {
     stamp(c, MAGE_ROBE, sx - 6, sy - 1, P);
   });
   // head, beard, hat
-  D.layer((c) => {
-    const nx = X(J.neck[0]), ny = Y(J.neck[1]);
-    stamp(c, MAGE_HEAD, nx - 7, ny - 12, P);
-  });
+  D.layer((c) => stamp(c, MAGE_HEAD, X(J.neck[0]) - 7, Y(J.neck[1]) - 12, P));
   D.layer((c) => stamp(c, MAGE_BEARD, X(J.neck[0]) - 5, Y(J.neck[1]) - 1, P));
   D.layer((c) => stamp(c, MAGE_HAT, X(J.neck[0]) - 10, Y(J.neck[1]) - 27, P));
-  // near arm (sleeve) and hand, a spark when casting
+  // the staff, held in the near hand: spells come out of its top
+  const a = J.arms.near, hx = X(a.ex), hy = Y(a.ey), ang = it.staffAngle ?? -1.45;
+  D.layer((c) => drawStaff(c, hx, hy, ang, W));
   D.layer((c) => {
-    const a = J.arms.near, hx = X(a.ex), hy = Y(a.ey);
     capsule(c, X(J.shN[0]), Y(J.shN[1]), X(a.jx), Y(a.jy), 2, [P.R, P.Q, P.q]);
     capsule(c, X(a.jx), Y(a.jy), hx, hy, 2, [P.R, P.Q, P.q]);
     c.ellipse(hx + 0.5, hy + 0.5, 1.8, 1.8, (x, y) => (x + y < hx + hy ? P.s : P.S));
   });
   if (it.flame) D.layer((c) => {
-    const a = J.arms.near, hx = X(a.ex), hy = Y(a.ey);
-    c.ellipse(hx + 1, hy, 3.4, 3.4, P.o); c.ellipse(hx + 1, hy - 0.5, 2.2, 2.2, P.O); c.set(Math.round(hx) + 1, Math.round(hy) - 1, P.h);
-  }, { ink: "#7a1e10" });
+    const [tx, ty] = staffTip(hx, hy, ang), ox = tx + Math.cos(ang) * 3, oy = ty + Math.sin(ang) * 3;
+    c.ellipse(ox + 0.5, oy + 0.5, 3.6, 3.6, W.glow[0]); c.ellipse(ox + 0.5, oy, 2.4, 2.4, W.glow[1]); c.set(Math.round(ox), Math.round(oy) - 1, W.glow[2]);
+  }, { ink: "#2a0e18" });
   return D.out;
+}
+function mageMuzzle(pose) {
+  const J = joints(pose, DIMS), ang = (pose.item ?? {}).staffAngle ?? -1.45, [tx, ty] = staffTip(J.arms.near.ex, J.arms.near.ey, ang);
+  return [Math.round(tx + Math.cos(ang) * 4), Math.round(ty + Math.sin(ang) * 4)];
 }
 
 // ======================================================================= ARCHER: Tico, the ginger with the chin
@@ -229,25 +275,56 @@ function drawArcher(pose) {
   return D.out;
 }
 
+// Bow variants per power: arc colors [body, tips], shape tweaks; rajada swaps the bow for a repeating crossbow.
+const ARCHER_BOWS = {
+  base:       { body: "#94603a", tips: "#ffd75e", half: 10, bulge: 4 },
+  triplo:     { body: "#c86a2a", tips: "#ffd04a", half: 10, bulge: 4, stack: 3 },
+  ricochete:  { body: "#6a3aa0", tips: "#c684ff", half: 10, bulge: 4, orb: "#b06aff" },
+  gelo:       { body: "#9ad8f4", tips: "#ffffff", half: 11, bulge: 3, crystal: "#5ac8ff" },
+  bumerangue: { body: "#3a8a4a", tips: "#a8ffcc", half: 9, bulge: 7 },
+  rajada:     { body: "#c89a30", tips: "#fff09a", crossbow: true },
+};
 function drawBow(c, hx, hy, ang, it, P, J, X, Y) {
-  // the bow is an arc across `ang` (the direction the arrow flies), held at its grip
-  const ax = Math.cos(ang), ay = Math.sin(ang), px = -ay, py = ax, half = 10, bulge = 4;
-  const pt = (u) => [hx + px * u * half + ax * bulge * (1 - u * u) - ax * 1, hy + py * u * half + ay * bulge * (1 - u * u) - ay * 1];
-  let prev = pt(-1);
-  for (let k = 1; k <= 24; k++) {
-    const p = pt(-1 + (2 * k) / 24);
-    c.line(prev[0], prev[1], p[0], p[1], Math.abs(k - 12) > 9 ? P.y : P.l);
-    prev = p;
+  const B = ARCHER_BOWS[VARIANT];
+  const ax = Math.cos(ang), ay = Math.sin(ang), px = -ay, py = ax;
+  if (B.crossbow) {
+    // a stock along the shot, a short bow across its front, a drum magazine on top
+    c.line(hx - ax * 6, hy - ay * 6, hx + ax * 6, hy + ay * 6, "#6e4022");
+    c.line(hx - ax * 6 + px, hy - ay * 6 + py, hx + ax * 6 + px, hy + ay * 6 + py, B.body);
+    const fx = hx + ax * 6, fy = hy + ay * 6;
+    for (let u = -1; u <= 1.001; u += 0.1) c.set(Math.round(fx + px * u * 6 - ax * (1 - u * u) * 2), Math.round(fy + py * u * 6 - ay * (1 - u * u) * 2), Math.abs(u) > 0.7 ? B.tips : B.body);
+    c.ellipse(hx - px * 2.5, hy - py * 2.5, 2.2, 2.2, B.body); c.set(Math.round(hx - px * 3), Math.round(hy - py * 3), B.tips);
+    if (it.nocked !== false) { c.set(Math.round(fx + ax), Math.round(fy + ay), "#ffffff"); }
+    return;
   }
-  const tipA = pt(-1), tipB = pt(1);
-  const pull = it.drawn ? [X(J.arms.far.ex), Y(J.arms.far.ey)] : [hx - ax * 1.5, hy - ay * 1.5];
-  c.line(tipA[0], tipA[1], pull[0], pull[1], "#e8e8f0");
-  c.line(tipB[0], tipB[1], pull[0], pull[1], "#e8e8f0");
-  if (it.nocked) {
-    const tipx = hx + ax * 7, tipy = hy + ay * 7;
-    c.line(pull[0], pull[1], tipx, tipy, P.T);
-    c.set(Math.round(tipx), Math.round(tipy), "#ffffff"); c.set(Math.round(tipx + ax), Math.round(tipy + ay), "#c0c8d8");
+  const arcs = B.stack ?? 1;
+  for (let s = 0; s < arcs; s++) {
+    const half = B.half - s * 2.5, bulge = B.bulge - s * 0.6, back = s * 2;
+    const pt = (u) => [hx + px * u * half + ax * bulge * (1 - u * u) - ax * (1 + back), hy + py * u * half + ay * bulge * (1 - u * u) - ay * (1 + back)];
+    let prev = pt(-1);
+    for (let k = 1; k <= 24; k++) {
+      const q = pt(-1 + (2 * k) / 24);
+      c.line(prev[0], prev[1], q[0], q[1], Math.abs(k - 12) > 9 ? B.tips : B.body);
+      prev = q;
+    }
+    if (s === 0) {
+      const tipA = pt(-1), tipB = pt(1);
+      const pull = it.drawn ? [X(J.arms.far.ex), Y(J.arms.far.ey)] : [hx - ax * 1.5, hy - ay * 1.5];
+      c.line(tipA[0], tipA[1], pull[0], pull[1], "#e8e8f0");
+      c.line(tipB[0], tipB[1], pull[0], pull[1], "#e8e8f0");
+      if (B.crystal) for (const t of [tipA, tipB]) { c.set(Math.round(t[0]), Math.round(t[1]), B.crystal); c.set(Math.round(t[0] - ax), Math.round(t[1] - ay), "#ffffff"); }
+      if (it.nocked) {
+        const tipx = hx + ax * 7, tipy = hy + ay * 7;
+        c.line(pull[0], pull[1], tipx, tipy, P.T);
+        c.set(Math.round(tipx), Math.round(tipy), "#ffffff"); c.set(Math.round(tipx + ax), Math.round(tipy + ay), "#c0c8d8");
+      }
+    }
   }
+  if (B.orb) c.ellipse(hx + ax * 2 + 0.5, hy + ay * 2 + 0.5, 1.8, 1.8, B.orb);
+}
+function archerMuzzle(pose) {
+  const J = joints(pose, DIMS), ang = (pose.item ?? {}).bowAngle ?? 0;
+  return [Math.round(J.arms.near.ex + Math.cos(ang) * 8), Math.round(J.arms.near.ey + Math.sin(ang) * 8)];
 }
 
 // ======================================================================= ZOMBIES
@@ -367,20 +444,20 @@ const lying = (draw, pose = {}) => () => {
   return out;
 };
 
-const MAGE_STAFF = { hb: [-6, 4], item: { staffAngle: -1.45 } };
-const cast = (hf, extra = {}) => ({ lean: 2, ff: [4, 0], fb: [-3, 0], hb: [-6, 4], hf, ...extra, item: { staffAngle: -1.6, ...(extra.item ?? {}) } });
+const MAGE_STAFF = { hf: [3, 6], hb: [-2, 6], item: { staffAngle: -1.45 } };
+const cast = (hf, ang, extra = {}) => ({ lean: 2, ff: [4, 0], fb: [-3, 0], hb: [2, 4], hf, ...extra, item: { staffAngle: ang, ...(extra.item ?? {}) } });
 const mageAnims = [
   { name: "idle", fps: 4, poses: idle(4, MAGE_STAFF) },
-  { name: "run", fps: 12, poses: run(8, (i, s) => ({ hb: [-6, 3], item: { staffAngle: -1.3 - 0.12 * s } })) },
-  { name: "jump", fps: 6, loop: false, poses: JUMP.map((p) => ({ ...p, ...MAGE_STAFF })) },
-  { name: "crouch", fps: 6, poses: [{ ...CROUCH, ...MAGE_STAFF }] },
-  { name: "shoot", fps: 16, loop: false, poses: [cast([-3, 2]), cast([8, -1], { item: { flame: true } }), cast([7, 1])] },
-  { name: "shoot_up", fps: 16, loop: false, poses: [cast([-2, 2]), cast([2, -9], { lean: 0, item: { flame: true } }), cast([2, -8], { lean: 0 })] },
-  { name: "crouch_shoot", fps: 16, loop: false, poses: [{ ...CROUCH, hf: [-2, 2] }, { ...CROUCH, hf: [8, 1], item: { flame: true } }, { ...CROUCH, hf: [7, 2] }] },
-  { name: "shoot_down", fps: 16, loop: false, poses: [{ ...JUMP[1], hf: [2, 4] }, { ...JUMP[1], hf: [2, 9], item: { flame: true } }, { ...JUMP[1], hf: [2, 8] }] },
-  { name: "special", fps: 10, loop: false, poses: [cast([-1, -8], { hb: [1, -8], lean: -1 }), cast([0, -9], { hb: [1, -9], item: { flame: true, staffAngle: -1.7 } }), cast([8, -2], { lean: 3, item: { flame: true } }), cast([7, 0])] },
-  { name: "hurt", fps: 8, loop: false, poses: [{ ...HURT, ...MAGE_STAFF }] },
-  { name: "death", fps: 8, loop: false, poses: [{ ...HURT }, { ...KNEEL }, lying(drawMage, {})] },
+  { name: "run", fps: 12, poses: run(8, (i, s) => ({ hf: [4, 5], hb: [-1 + 3 * s, 6], item: { staffAngle: -1.25 - 0.1 * s } })) },
+  { name: "jump", fps: 6, loop: false, poses: JUMP.map((p) => ({ ...p, hf: [3, 1], item: { staffAngle: -1.3 } })) },
+  { name: "crouch", fps: 6, poses: [{ ...CROUCH, hf: [5, 3], item: { staffAngle: -1.2 } }] },
+  { name: "shoot", fps: 16, loop: false, poses: [cast([-1, -2], -2.3), cast([7, 0], -0.1, { lean: 3, item: { flame: true } }), cast([6, 1], -0.35)] },
+  { name: "shoot_up", fps: 16, loop: false, poses: [cast([0, 2], -2.0), cast([2, -7], -1.57, { lean: 0, item: { flame: true } }), cast([2, -6], -1.6, { lean: 0 })] },
+  { name: "crouch_shoot", fps: 16, loop: false, poses: [{ ...CROUCH, hf: [0, 0], item: { staffAngle: -2.2 } }, { ...CROUCH, hf: [7, 1], item: { staffAngle: -0.05, flame: true } }, { ...CROUCH, hf: [6, 2], item: { staffAngle: -0.3 } }] },
+  { name: "shoot_down", fps: 16, loop: false, poses: [{ ...JUMP[1], hf: [3, 2], item: { staffAngle: 0.9 } }, { ...JUMP[1], hf: [2, 7], item: { staffAngle: 1.57, flame: true } }, { ...JUMP[1], hf: [2, 6], item: { staffAngle: 1.4 } }] },
+  { name: "special", fps: 10, loop: false, poses: [cast([1, -7], -1.57, { hb: [0, -7], lean: -1 }), cast([1, -8], -1.57, { hb: [0, -8], item: { flame: true } }), cast([8, -1], -0.3, { lean: 4, item: { flame: true } }), cast([6, 1], -0.5)] },
+  { name: "hurt", fps: 8, loop: false, poses: [{ ...HURT, item: { staffAngle: -2.3 } }] },
+  { name: "death", fps: 8, loop: false, poses: [{ ...HURT, item: { staffAngle: -2.3 } }, { ...KNEEL, item: { staffAngle: -0.4 } }, lying(drawMage, { item: { staffAngle: -1.57 } })] },
 ];
 
 const BOW = (o = {}) => ({ item: { bowAngle: -0.9, ...o } });
@@ -416,14 +493,15 @@ const drawZ = (p) => drawZombie(p, ZOMBIE_HEAD, ZOMBIE_PAL);
 const drawS = (p) => drawZombie(p, SPITTER_HEAD, SPITTER_PAL, 2);
 
 // ======================================================================= build
+// heroes get one sheet per weapon variant: mage.png (base), mage_triplo.png, ... (Player swaps them with the power)
 const CAST = {
-  mage: [drawMage, mageAnims],
-  archer: [drawArcher, archerAnims],
-  zombie: [drawZ, zombieAnims(drawZ)],
-  spitter: [drawS, zombieAnims(drawS)],
+  mage: [drawMage, mageAnims, mageMuzzle, Object.keys(MAGE_STAFFS)],
+  archer: [drawArcher, archerAnims, archerMuzzle, Object.keys(ARCHER_BOWS)],
+  zombie: [drawZ, zombieAnims(drawZ), null, ["base"]],
+  spitter: [drawS, zombieAnims(drawS), null, ["base"]],
 };
 
-function build(draw, anims) {
+function build(draw, anims, muzzleOf) {
   const cols = Math.max(...anims.map((a) => a.poses.length));
   const sheet = new Canvas(cols * CELL.w, anims.length * CELL.h);
   const meta = { cell: [CELL.w, CELL.h], pivot: [CELL.ox, CELL.oy], animations: {}, muzzles: {} };
@@ -433,7 +511,7 @@ function build(draw, anims) {
     const rel = a.poses[1];
     if (/shoot|special|spit/.test(a.name) && rel && typeof rel === "object") {
       const J = joints(rel, DIMS);
-      meta.muzzles[a.name] = a.name === "spit" ? [Math.round(J.neck[0] + 9), Math.round(J.neck[1] - 3)] : [Math.round(J.arms.near.ex + 2), Math.round(J.arms.near.ey)];
+      meta.muzzles[a.name] = muzzleOf ? muzzleOf(rel) : a.name === "spit" ? [Math.round(J.neck[0] + 9), Math.round(J.neck[1] - 3)] : [Math.round(J.arms.near.ex + 2), Math.round(J.arms.near.ey)];
     }
   });
   return { sheet, meta };
@@ -442,11 +520,15 @@ function build(draw, anims) {
 const preview = process.argv.includes("--preview");
 const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 mkdirSync(OUT, { recursive: true });
-for (const [name, [draw, anims]] of Object.entries(CAST)) {
+for (const [name, [draw, anims, muzzleOf, variants]] of Object.entries(CAST)) {
   if (only.length && !only.includes(name)) continue;
-  const { sheet, meta } = build(draw, anims);
-  sheet.save(join(OUT, name + ".png"));
-  writeFileSync(join(OUT, name + ".json"), JSON.stringify(meta, null, 1));
-  if (preview) sheet.scaled(4).save(join(ROOT, "tools", "art", "out", name + "-preview.png"));
-  console.log(name, sheet.w + "x" + sheet.h);
+  for (const v of variants) {
+    VARIANT = v;
+    const file = v === "base" ? name : name + "_" + v;
+    const { sheet, meta } = build(draw, anims, muzzleOf);
+    sheet.save(join(OUT, file + ".png"));
+    writeFileSync(join(OUT, file + ".json"), JSON.stringify(meta, null, 1));
+    if (preview) sheet.scaled(4).save(join(ROOT, "tools", "art", "out", file + "-preview.png"));
+    console.log(file, sheet.w + "x" + sheet.h);
+  }
 }

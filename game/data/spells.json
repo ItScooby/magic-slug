@@ -1,17 +1,17 @@
 {
- "_doc": "Spells. type: projectile (straight), lob (arc + area damage), rain (projectiles falling on an area ahead). Extra projectile flags: pierce (goes through enemies), bounces (bounces on the floor N times, needs gravity), boomerang (comes back after range), jitter (random aim in degrees), lift (initial upward speed). fx '@hero' = the hero's own basic-attack look. Speeds in px/s, cooldown in s.",
+ "_doc": "Spells. type: projectile (straight), lob (arc + area damage), rain (projectiles falling on an area ahead). Extra projectile flags: pierce (goes through enemies), bounces (bounces on the floor N times, needs gravity), boomerang (comes back after range), jitter (random aim in degrees), lift (initial upward speed). fx '@hero' = the hero's own basic-attack look. Speeds in px/s, cooldown in s. sfx = sound played on cast ('@hero' = the hero's own) (game/assets/audio/sfx/<name>.wav, made by tools/audio/make_sfx.mjs).",
  "fireball": {
   "type": "projectile",
   "fx": "fireball",
   "hit_fx": "hit_fire",
-  "sound": "",
   "speed": 250,
   "damage": 3,
   "cooldown": 0.38,
   "count": 1,
   "spread": 0,
   "radius": 7,
-  "range": 420
+  "range": 420,
+  "sfx": "fireball"
  },
  "arrow_shot": {
   "type": "projectile",
@@ -23,7 +23,8 @@
   "count": 1,
   "spread": 0,
   "radius": 4,
-  "range": 420
+  "range": 420,
+  "sfx": "arrow"
  },
  "meteor": {
   "type": "lob",
@@ -34,7 +35,8 @@
   "damage": 8,
   "area": 52,
   "cooldown": 0.6,
-  "radius": 7
+  "radius": 7,
+  "sfx": "meteor"
  },
  "arrow_rain": {
   "type": "rain",
@@ -47,7 +49,8 @@
   "delay": 0.35,
   "speed": 420,
   "cooldown": 0.8,
-  "radius": 5
+  "radius": 5,
+  "sfx": "rain"
  },
  "acid": {
   "type": "lob",
@@ -58,7 +61,8 @@
   "damage": 1,
   "area": 14,
   "cooldown": 0,
-  "radius": 5
+  "radius": 5,
+  "sfx": "acid"
  },
  "p_triplo": {
   "type": "projectile",
@@ -70,7 +74,8 @@
   "count": 3,
   "spread": 14,
   "radius": 5,
-  "range": 300
+  "range": 300,
+  "sfx": "@hero"
  },
  "p_ricochete": {
   "type": "projectile",
@@ -83,7 +88,8 @@
   "damage": 2,
   "cooldown": 0.42,
   "radius": 6,
-  "range": 900
+  "range": 900,
+  "sfx": "orb"
  },
  "p_gelo": {
   "type": "projectile",
@@ -94,7 +100,8 @@
   "pierce": true,
   "cooldown": 0.5,
   "radius": 5,
-  "range": 480
+  "range": 480,
+  "sfx": "ice"
  },
  "p_bumerangue": {
   "type": "projectile",
@@ -106,7 +113,8 @@
   "boomerang": true,
   "cooldown": 0.55,
   "radius": 7,
-  "range": 150
+  "range": 150,
+  "sfx": "disc"
  },
  "p_rajada": {
   "type": "projectile",
@@ -117,6 +125,7 @@
   "cooldown": 0.09,
   "jitter": 5,
   "radius": 3,
-  "range": 380
+  "range": 380,
+  "sfx": "bolt"
  }
 }

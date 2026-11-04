@@ -55,9 +55,11 @@ func _apply(p: Player) -> void:
 	match kind:
 		"gem":
 			Game.add_score(500)
+			Audio.play("gem")
 			Fx.play("poof", global_position + Vector2(0, 8))
 		"mana":
 			p.special_ammo += 3
+			Audio.play("mana")
 			Game.special_changed.emit(p.special_ammo)
 			Game.say("+3 MAGIA ESPECIAL", 1.2)
 			Fx.play("poof", global_position + Vector2(0, 8))

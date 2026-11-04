@@ -57,7 +57,7 @@ func _physics_process(delta: float) -> void:
 	attack_cd -= delta
 	if state == "dead":
 		if not flies:
-			velocity.x = 0
+			velocity.x = move_toward(velocity.x, 0, (40 if not is_on_floor() else 400) * delta)
 			velocity.y += GRAVITY * delta
 			move_and_slide()
 		return
@@ -114,6 +114,7 @@ func _claw(_p: Node2D) -> void:
 	await get_tree().create_timer(0.2).timeout
 	if state != "attack":
 		return
+	Audio.play("claw")
 	var target := _player()
 	if target and target.global_position.distance_to(global_position) < data.get("attack_range", 20) + 10:
 		target.take_damage(data.get("damage", 1), self)
@@ -161,6 +162,7 @@ func _spit() -> void:
 		# aim the lob so it lands near the player
 		var dist: float = abs(p.global_position.x - global_position.x)
 		spell["speed"] = clamp(dist * 1.4, 60.0, 220.0)
+	Audio.play(spell.get("sfx", ""))
 	Spells._spawn(spell, "enemy", origin, Vector2(facing * spell["speed"], -spell.get("lift", 170.0)), 600.0)
 	await get_tree().create_timer(0.4).timeout
 	if state == "attack":
@@ -182,19 +184,34 @@ func _think_flyer(p: Node2D, _delta: float) -> void:
 		attack_cd = 1.0
 		p.take_damage(data.get("damage", 1), self)
 
-func take_damage(amount: int, _source: Node = null) -> void:
+## Hit feedback: white flash, shiver, a splat where the shot landed and a small push back.
+func take_damage(amount: int, source: Node = null) -> void:
 	if state == "dead":
 		return
 	hp -= amount
-	if sprite:
+	var push := -facing
+	var at := global_position + Vector2(0, 0 if flies else -16)
+	if source is Node2D:
+		var s := source as Node2D
+		push = 1 if global_position.x >= s.global_position.x else -1
+		at = s.global_position
+	if data.has("blood_fx"):
+		Fx.play(data["blood_fx"], at, {"flip": push < 0})
+	Audio.play(data.get("hit_sfx", "") if hp > 0 else data.get("die_sfx", ""))
+	if sprite and not (flies and hp <= 0):
 		sprite.modulate = Color(3, 3, 3)
 		create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.12)
+		var tw := create_tween()
+		for i in 3:
+			tw.tween_property(sprite, "position:x", (2 if i % 2 == 0 else -2), 0.025)
+		tw.tween_property(sprite, "position:x", 0, 0.025)
 	if hp <= 0:
-		_die()
+		_die(push)
 		return
 	if state != "attack" and not flies:
 		state = "hurt"
 		timer = 0.15
+		velocity.x = push * data.get("knockback", 50)
 		_anim("hurt")
 
 ## Metal Slug style: a dead enemy may leave a power behind.
@@ -208,19 +225,32 @@ func _maybe_drop() -> void:
 	pk.position = global_position + Vector2(0, -12 if not flies else 0)
 	Fx.world.add_child.call_deferred(pk)
 
-func _die() -> void:
+## Death: a tiny freeze, the body is thrown back, a goo burst, the soul rises, then it blinks away.
+func _die(push := 0) -> void:
 	state = "dead"
 	remove_from_group("enemies")
 	collision_layer = 0
 	Game.add_score(data.get("score", 100))
+	Game.hitstop(0.05)
 	_maybe_drop()
 	if flies:
 		Fx.play("poof", global_position + Vector2(0, 8))
+		Fx.ring(global_position, Color(1, 1, 1, 0.8), 18.0, 0.25, 1.0)
 		queue_free()
 		return
+	if push == 0:
+		push = -facing
+	facing = -push
+	velocity = Vector2(push * 70, -150)
 	_anim("death")
+	if data.has("blood_fx"):
+		for i in 2:
+			Fx.play(data["blood_fx"], global_position + Vector2(randf_range(-6, 6), -10 - i * 10), {"flip": i == 1})
 	Fx.play("soul", global_position, {"modulate": Color(0.7, 1.0, 0.7, 0.8)})
-	await get_tree().create_timer(1.2).timeout
+	await get_tree().create_timer(1.0).timeout
 	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.5)
+	for i in 5:
+		tw.tween_property(self, "modulate:a", 0.15, 0.06)
+		tw.tween_property(self, "modulate:a", 1.0, 0.06)
+	tw.tween_property(self, "modulate:a", 0.0, 0.2)
 	tw.tween_callback(queue_free)

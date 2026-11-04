@@ -5,6 +5,7 @@ extends Node
 
 var _chars := {}
 var _fx := {}
+var _fx_list := {}
 
 ## Returns {frames: SpriteFrames, pivot: Vector2, muzzles: Dictionary}
 func character(name: String) -> Dictionary:
@@ -52,7 +53,12 @@ func fx(name: String) -> Dictionary:
 		at.atlas = tex
 		at.region = Rect2(r["x"], r["y"], r["w"], r["h"])
 		frames.add_frame("fx", at)
-	var out := {"frames": frames, "pivot": Vector2(p["pivot"][0], p["pivot"][1]), "loop": p["loop"], "size": Vector2(p["frameSize"][0], p["frameSize"][1])}
+	var pivot := Vector2(p["pivot"][0], p["pivot"][1])
+	if _fx_list.is_empty():
+		_fx_list = Game.load_json("res://data/fx.json")
+	var nudge: Array = _fx_list.get(name, {}).get("nudge", [0, 0])
+	pivot -= Vector2(nudge[0], nudge[1])
+	var out := {"frames": frames, "pivot": pivot, "loop": p["loop"], "size": Vector2(p["frameSize"][0], p["frameSize"][1])}
 	_fx[name] = out
 	return out
 
